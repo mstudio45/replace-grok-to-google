@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         Grok to Google Translation
-// @version      v1.0.0
+// @version      v1.0.1
 // @author       mstudio45
 // @description  Replaces Grok's translation with Google Translate.
+// @icon         https://abs.twimg.com/favicons/twitter.3.ico
 // @match        *://x.com/*
 // @match        *://twitter.com/*
 // @grant        GM_xmlhttpRequest
