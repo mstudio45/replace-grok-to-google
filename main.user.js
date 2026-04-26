@@ -9,8 +9,6 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @connect      translate.googleapis.com
-// @downloadURL  https://raw.githubusercontent.com/mstudio45/replace-grok-to-google/refs/heads/main/main.user.js
-// @updateURL    https://raw.githubusercontent.com/mstudio45/replace-grok-to-google/refs/heads/main/main.user.js
 // ==/UserScript==
 
 (function() {
