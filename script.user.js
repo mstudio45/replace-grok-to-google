@@ -1,11 +1,14 @@
 // ==UserScript==
-// @name         Grok to Google Translation
+// @name         GrokToGoogle
+// @namespace    https://github.com/mstudio45
 // @version      v1.0.4
-// @author       mstudio45
 // @description  Replaces Grok's translation with Google Translate.
-// @icon         https://abs.twimg.com/favicons/twitter.3.ico
+// @author       mstudio45
 // @match        *://x.com/*
 // @match        *://twitter.com/*
+// @icon         https://abs.twimg.com/favicons/twitter.3.ico
+// @updateURL    https://github.com/mstudio45/replace-grok-to-google/raw/refs/heads/main/script.user.js
+// @downloadURL  https://github.com/mstudio45/replace-grok-to-google/raw/refs/heads/main/script.user.js
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @grant        GM_getValue
