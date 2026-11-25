@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Grok to Google Translation
-// @version      v1.0.3
+// @version      v1.0.4
 // @author       mstudio45
 // @description  Replaces Grok's translation with Google Translate.
 // @icon         https://abs.twimg.com/favicons/twitter.3.ico
@@ -48,6 +48,25 @@
     // regex //
     const emojiRegex = /(\p{Regional_Indicator}{2}|(?:(?:\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(?:\p{Emoji_Modifier}|[\u200D\uFE0F]+\p{Emoji})*))/gu;
     const emojiRegexp = new RegExp(`^${emojiRegex.source}$`, "u");
+	const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
+
+    // selectors //
+    const tweetTextSelectors = ['div[data-testid="tweetText"]', 'article div[dir="auto"][lang]:not([data-testid])'];
+    const tweetTextSelector = tweetTextSelectors.join(", ");
+    const translateButtonSelector = 'button[aria-label="Show translation"], span:has(> svg[data-icon="icon-logo-grok"]) + button';
+
+    function findTweetText(btn) {
+        let parent = btn.parentElement;
+        while (parent && parent !== document.body) {
+            const textElement = parent.querySelector(tweetTextSelector);
+            if (textElement) return textElement;
+            if (parent.nodeName === "ARTICLE") break;
+
+            parent = parent.parentElement;
+        }
+
+        return null;
+    }
 
     // text handler //
     function isTranslatable(text) {
@@ -87,7 +106,7 @@
     function tweetTextToHtml(text) {
         const spanClass = "tweet-translated-text-span";
         const imgClass = "tweet-translated-emoji-img";
-        
+
         const tweetParts = text.split(emojiRegex);
         return tweetParts.map((part) => {
             if (!part) return "";
@@ -142,7 +161,7 @@
             text-decoration: none;
             white-space: inherit;
         }
-            
+
         .tweet-translated-emoji-img {
             vertical-align: -20%;
             width: 1.2em;
@@ -227,7 +246,7 @@
 
     // button handler //
     const buttonObserver = new MutationObserver(() => {
-        document.querySelectorAll('button[aria-label="Show translation"]').forEach((btn) => {
+        document.querySelectorAll(translateButtonSelector).forEach((btn) => {
             if (btn.dataset.translateProcessed) return;
             btn.dataset.translateProcessed = "true";
             debugLog("Translation button found.");
@@ -242,8 +261,7 @@
                 event.stopPropagation();
                 debugLog("Translation button clicked, handling...");
 
-                const tweetContainer = btn.parentElement.parentElement; // btn.closest("article");
-                const textElement = tweetContainer ? tweetContainer.querySelector('div[data-testid="tweetText"]') : null;
+                const textElement = findTweetText(btn);
                 if (!textElement) return;
 
                 const labelSpan = btn.querySelector("span");
@@ -255,7 +273,7 @@
 
                     if (isShowingTranslation) {
                         debugLog("Switched to original text.");
-                        
+
                         updateLabel("Show translation");
                         textElement.innerHTML = btn.dataset.originalHtml;
                         btn.dataset.showingTranslation = "false";
@@ -293,7 +311,7 @@
                     btn.dataset.showingTranslation = "true";
 
                     textElement.innerHTML = translatedHtml;
-                    updateLabel("Show original");
+                    updateLabel("Show original (" + languageNames.of(textElement.lang ?? "en") + ")");
                 } catch (e) {
                     console.error("Translation failed:", e);
 
@@ -311,7 +329,8 @@
     // tweet handler //
     if (CONFIG.createMissingTranslateBtn) {
         const tweetObserver = new MutationObserver(() => {
-            document.querySelectorAll('div[data-testid="tweetText"][lang]:not([lang^="' + CONFIG.translateTo + '"])').forEach((tweet) => {
+            const missingSelector = tweetTextSelectors.map((selector) => selector + '[lang]:not([lang^="' + CONFIG.translateTo + '"])').join(", ");
+            document.querySelectorAll(missingSelector).forEach((tweet) => {
                 if (tweet.dataset.translateBtnProcessed) return;
                 tweet.dataset.translateBtnProcessed = "true";
 
@@ -319,14 +338,15 @@
                 if (!container) return;
 
                 const hasCustom = container.querySelector(".tweet-btn-container");
-                const hasNative = container.querySelector('button[aria-label="Show translation"]');
+                const hasNative = container.querySelector(translateButtonSelector + ", button[data-translate-processed]");
                 if (hasCustom || hasNative) return;
-    
+
                 const text = extractTweetText(tweet);
                 if (!isTranslatable(text)) return;
 
                 debugLog("Adding translation button to tweet...");
-                container.insertAdjacentHTML("afterbegin", translateButtonDiv);
+                if (tweet.dataset.testid === "tweetText") container.insertAdjacentHTML("afterbegin", translateButtonDiv);
+                else tweet.insertAdjacentHTML("beforebegin", translateButtonDiv);
             });
         });
 
